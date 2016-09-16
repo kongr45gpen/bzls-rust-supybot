@@ -28,9 +28,26 @@ class Bzls(callbacks.Plugin):
         p = subprocess.Popen(moreargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         out = out.replace("\x1b[33m", "\x0307").replace("\x1b[36m", "\x0311").replace("\x1b[32m", "\x0303").replace("\x1b[31m", "\x0304").replace("\x1b[0m", "\x0F")
-        for part in out.split("\n"):
-            if part != '':
-                irc.reply(part, prefixNick=False)
+        parts = out.split("\n")
+
+        parts.pop()
+        footer = parts.pop()
+        parts.pop() # Remove whitespace line
+
+        i = 0
+        maxSize = 4
+        for part in parts:
+            if part == '':
+                continue
+
+            if i >= maxSize and len(parts) != maxSize + 1: # Make sure we never omit only 1 entry
+                irc.reply("%d entries omitted..." % (len(parts)-maxSize), prefixNick = False)
+                break
+
+            i += 1
+            irc.reply(part, prefixNick = False)
+        irc.reply(footer, prefixNick = False)
+
     bzls = wrap(bzls, [any('something')])
 
 
